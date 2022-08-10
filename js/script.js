@@ -1,86 +1,204 @@
-function makeMsg() 
+
+
+//Constants
+const defaultYear = 2022;
+const defaultMonth = 4;
+const defaultHour = 9;
+const defaultMinute = 0;
+const defaultSecond = 0;
+
+const slotsPerDay = 8;
+const daysPerMonth = 30;
+
+
+class Slot
 {
-    let msg = "Seleccione tu turno:" + "\r\n" +
-                "    1  -  10 Hs  -  Disponible" + "\r\n" +
-                "    2  -  11 Hs  -  Disponile" + "\r\n" +
-                "    3  -  12 Hs  -  Ocupado" + "\r\n" +
-                "    4  -  13 Hs  -  Disponible" + "\r\n" +
-                "    5  -  14 Hs  -  Ocupado";
+    constructor(date, available)
+    {
+        this.date = date;
+        this.available = available;
+    }
+}
+
+class User
+{
+    constructor(name, addFee)
+    {
+        this.name = name;
+        this.addFee = addFee;
+    }
+}
+
+
+//Fill slots with randon information
+const slots = [];
+
+for (let i = 1; i <= daysPerMonth; i++)
+{
+    for (let j = 0; j < slotsPerDay; j++)
+    {
+        let slotDate = new Date(defaultYear, defaultMonth, i, defaultHour + j, defaultMinute, defaultSecond);
+        let slotAvailable = true;
+
+        if(0 == Math.round( Math.random() ))
+        {
+            slotAvailable = false;
+        }
+
+        slots.push(new Slot(slotDate, slotAvailable));
+    }
+}
+
+
+//Fill users with randon information
+const users = [];
+
+users.push(new User("Juan", false));
+users.push(new User("Luis", false));
+users.push(new User("Carlos", true));
+users.push(new User("Miguel", true));
+users.push(new User("Mateo", false));
+
+
+
+function makeSlotsMsg(currentDaySlots) 
+{
+    let msg = "Seleccione tu turno:" + "\r\n";
+
+    currentDaySlots.forEach(el => {
+        msg = msg + el.date.getHours() + "  -  ";
+        
+        if (true == el.available)
+        {
+            msg = msg + "Disponible" + "\r\n";
+        }
+        else
+        {
+            msg = msg + "Ocupado" + "\r\n";
+        }
+    });
 
     return msg;
 }
 
-function showSlotUnavailable(slot)
+
+
+function makeConfirmationMsg(currentUser, currentSlot)
 {
-    alert("El turno " + slot + " está ocupado.");
-}
-
-function showSlotError()
-{
-    alert("El turno no es válido.");
-}
-
-function showClientError()
-{
-    alert("El nombre no es válido.");
-}
-
-function showSlotConfirmation(client, slot)
-{
-    alert("Confirme la información: " + "\r\n" +
-            "    Cliente: " + client + "\r\n" +
-            "    Turno: " + slot);
-}
-
-
-let slot = "0";
-let slotOk = false;
-
-do 
-{
-    slot = prompt( makeMsg() );
-
-    switch (slot)
+    let msg = "Confirme su información: " + "\r\n\r\n" +
+                "Usuario: " + currentUser.name  + "\r\n" +
+                "Fecha: " + currentSlot.date.toLocaleDateString();
+    
+    if (true == currentUser.addFee)
     {
-        case "1":
-            slotOk = true;
-            break
+        msg = msg + "\r\n\r\n" + "TIENES UN RECARGO POR INCUMPLIMIENTO"
+    }
+
+    return msg;
+}
+
+
+
+
+// We get and validate the name user 
+let validUser = false;
+let errorUserCount = 3;
+let currentUser;
+
+while ((false == validUser) && (errorUserCount > 0))
+{
+    let currentUserName = prompt("Ingrese su nombre:");
+
+    validUser = users.some((el) => el.name == currentUserName);
+    
+    if (true == validUser)
+    {
+        alert("Bienvenido " + currentUserName + "!")
         
-        case "2":
-            slotOk = true;
-            break
-
-        case "3":
-            showSlotUnavailable(slot);
-            break
-
-        case "4":
-            slotOk = true;
-            break
-
-        case "5":
-            showSlotUnavailable(slot);
-            break
-
-        default:
-            showSlotError();
+        currentUser = users.find((el) => el.name == currentUserName);
+        if (true == currentUser.addFee)
+        {
+            alert("ATENCION: Tienes un recargo por incumplimiento!");
+        }
     }
-
-} while (false == slotOk)
-
-
-let client = "";
-
-do 
-{
-    client = prompt("Ingrese su nombre.");
-
-    if ("" == client)
+    else
     {
-        showClientError();
+        alert(currentUserName + " no está registrado.");
+        errorUserCount--;
     }
+}
 
-} while ("" == client)
+
+// We get and validate the day  
+let validDay = false;
+let errorDayCount = 3;
+let currentDay;
+
+if (true == validUser)
+{
+    while ((false == validDay) && (errorDayCount > 0))
+    {
+        currentDay = parseInt( prompt("Ingrese el día del mes:"));
+
+        if ((false == isNaN(currentDay)) && (currentDay > 0) && (currentDay <= daysPerMonth))
+        {
+            validDay = true;
+        }
+        else
+        {
+            alert("Ingrese un día válido");
+            errorDayCount--;
+        }
+    }
+}
 
 
-showSlotConfirmation(client, slot);
+// We get and validate the hour
+let validSlot = false;
+let errorSlotCount = 3;
+let currentSlot;
+
+if (true == validDay)
+{
+    let currentDaySlots = slots.filter((el) => el.date.getDate() == currentDay);
+
+    while ((false == validSlot) && (errorSlotCount > 0))
+    {
+        let currentSlotHour = parseInt( prompt( makeSlotsMsg(currentDaySlots) ) );
+
+        if (false == isNaN(currentSlotHour))
+        {
+            if (true == currentDaySlots.some((el) => el.date.getHours() == currentSlotHour))
+            {
+                currentSlot = currentDaySlots.find((el) => el.date.getHours() == currentSlotHour);
+
+                if (true == currentSlot.available)
+                {
+                    validSlot = true;
+                }
+                else
+                {
+                    alert("Ingrese un horario disponible");
+                    errorSlotCount--;
+                }
+            }
+            else
+            {
+                alert("Ingrese un horario válido");
+                errorSlotCount--;
+            }
+        }
+        else
+        {
+            alert("Ingrese un horario válido");
+            errorSlotCount--;
+        }
+    }
+}
+
+
+// We show the information
+if (true == validSlot)
+{
+    alert( makeConfirmationMsg(currentUser, currentSlot));
+}

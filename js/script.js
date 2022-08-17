@@ -61,144 +61,125 @@ users.push(new User("Mateo", false));
 
 
 
-function makeSlotsMsg(currentDaySlots) 
+document.getElementById("btnLogin").addEventListener("click", checkUser);
+
+function checkUser()
 {
-    let msg = "Seleccione tu turno:" + "\r\n";
-
-    currentDaySlots.forEach(el => {
-        msg = msg + el.date.getHours() + "  -  ";
-        
-        if (true == el.available)
-        {
-            msg = msg + "Disponible" + "\r\n";
-        }
-        else
-        {
-            msg = msg + "Ocupado" + "\r\n";
-        }
-    });
-
-    return msg;
-}
-
-
-
-function makeConfirmationMsg(currentUser, currentSlot)
-{
-    let msg = "Confirme su información: " + "\r\n\r\n" +
-                "Usuario: " + currentUser.name  + "\r\n" +
-                "Fecha: " + currentSlot.date.toLocaleDateString();
-    
-    if (true == currentUser.addFee)
-    {
-        msg = msg + "\r\n\r\n" + "TIENES UN RECARGO POR INCUMPLIMIENTO"
-    }
-
-    return msg;
-}
-
-
-
-
-// We get and validate the name user 
-let validUser = false;
-let errorUserCount = 3;
-let currentUser;
-
-while ((false == validUser) && (errorUserCount > 0))
-{
-    let currentUserName = prompt("Ingrese su nombre:");
+    let currentUserName = document.getElementById("userName").value;
 
     validUser = users.some((el) => el.name == currentUserName);
     
+    let userMsg = document.getElementById("userMsg");
+
     if (true == validUser)
     {
-        alert("Bienvenido " + currentUserName + "!")
+        userMsg.innerHTML = `<h2>Bienvenido ${currentUserName}!</h2>`
         
         currentUser = users.find((el) => el.name == currentUserName);
         if (true == currentUser.addFee)
         {
-            alert("ATENCION: Tienes un recargo por incumplimiento!");
+            userMsg.innerHTML += "<h3>ATENCION: Tienes un recargo por incumplimiento!</h3>"
+        }
+
+        let day = document.getElementById("day");
+
+        day.innerHTML = `<p>Ingrese el día: <input id="userDay" type="text"></p>
+                            <button id="btnDay">Consultar</button>`;
+
+        document.getElementById("btnDay").addEventListener("click", checkDay);
+    }
+    else
+    {
+        userMsg.innerHTML = `<h2>${currentUserName} no está registrado.</h2>`
+    }
+}
+
+
+
+
+let currentUserDay;
+
+function checkDay()
+{
+    currentUserDay = document.getElementById("userDay").value;
+
+    let slotsMsg = document.getElementById("slotsMsg");
+
+    if ((false == isNaN(currentUserDay)) && (currentUserDay > 0) && (currentUserDay <= daysPerMonth))
+    {
+        let currentDaySlots = slots.filter((el) => el.date.getDate() == currentUserDay);
+
+        let msg = "Seleccione tu turno:" + "<br>";
+
+        currentDaySlots.forEach(el => {
+            msg = msg + el.date.getHours() + "  -  ";
+            
+            if (true == el.available)
+            {
+                msg = msg + "Disponible" + "<br>";
+            }
+            else
+            {
+                msg = msg + "Ocupado" + "<br>";
+            }
+        });
+
+        
+
+        slotsMsg.innerHTML = `<p>${msg}</p>`;
+
+        slotsMsg.innerHTML += `<input id="userSlot" type="text"></input>`
+        slotsMsg.innerHTML += `<button id="btnSend">Enviar</button>`;
+
+        document.getElementById("btnSend").addEventListener("click", checkSlot);
+    }
+    else
+    {
+        slotsMsg.innerHTML = "<h2>Ingrese un día válido</h2>";
+    }
+}
+
+
+
+function checkSlot()
+{
+    let currentUserSlot = document.getElementById("userSlot").value;
+
+    let confirmMsg = document.getElementById("confirmMsg");
+
+    let currentDaySlots = slots.filter((el) => el.date.getDate() == currentUserDay);
+
+    if (false == isNaN(currentUserSlot))
+    {
+        if (true == currentDaySlots.some((el) => el.date.getHours() == currentUserSlot))
+        {
+            currentSlot = currentDaySlots.find((el) => el.date.getHours() == currentUserSlot);
+
+            if (true == currentSlot.available)
+            {
+                let msg = "Resumen: " + "<br><br>" +
+                "Usuario: " + currentUser.name  + "<br>" +
+                "Fecha: " + currentSlot.date.toLocaleDateString();
+
+                if (true == currentUser.addFee)
+                {
+                    msg = msg + "<br><br>" + "TIENES UN RECARGO POR INCUMPLIMIENTO"
+                }
+
+                confirmMsg.innerHTML = `<p>${msg}</p>`;
+            }
+            else
+            {
+                confirmMsg.innerHTML = "<h2>Ingrese un horario disponible</h2>";                
+            }
+        }
+        else
+        {
+            confirmMsg.innerHTML = "<h2>Ingrese un horario válido</h2>";
         }
     }
     else
     {
-        alert(currentUserName + " no está registrado.");
-        errorUserCount--;
+        confirmMsg.innerHTML = "<h2>Ingrese un horario válido</h2>";
     }
-}
-
-
-// We get and validate the day  
-let validDay = false;
-let errorDayCount = 3;
-let currentDay;
-
-if (true == validUser)
-{
-    while ((false == validDay) && (errorDayCount > 0))
-    {
-        currentDay = parseInt( prompt("Ingrese el día del mes:"));
-
-        if ((false == isNaN(currentDay)) && (currentDay > 0) && (currentDay <= daysPerMonth))
-        {
-            validDay = true;
-        }
-        else
-        {
-            alert("Ingrese un día válido");
-            errorDayCount--;
-        }
-    }
-}
-
-
-// We get and validate the hour
-let validSlot = false;
-let errorSlotCount = 3;
-let currentSlot;
-
-if (true == validDay)
-{
-    let currentDaySlots = slots.filter((el) => el.date.getDate() == currentDay);
-
-    while ((false == validSlot) && (errorSlotCount > 0))
-    {
-        let currentSlotHour = parseInt( prompt( makeSlotsMsg(currentDaySlots) ) );
-
-        if (false == isNaN(currentSlotHour))
-        {
-            if (true == currentDaySlots.some((el) => el.date.getHours() == currentSlotHour))
-            {
-                currentSlot = currentDaySlots.find((el) => el.date.getHours() == currentSlotHour);
-
-                if (true == currentSlot.available)
-                {
-                    validSlot = true;
-                }
-                else
-                {
-                    alert("Ingrese un horario disponible");
-                    errorSlotCount--;
-                }
-            }
-            else
-            {
-                alert("Ingrese un horario válido");
-                errorSlotCount--;
-            }
-        }
-        else
-        {
-            alert("Ingrese un horario válido");
-            errorSlotCount--;
-        }
-    }
-}
-
-
-// We show the information
-if (true == validSlot)
-{
-    alert( makeConfirmationMsg(currentUser, currentSlot));
 }

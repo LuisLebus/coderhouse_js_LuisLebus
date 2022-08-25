@@ -4,24 +4,35 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/styles.css">
     <title>Lavadero</title>
 </head>
 <body>
-    <h1>LAVADERO</h1>
-    <p>Ingrese su nombre: <input id="userName" type="text"></p>
-    <button id="btnLogin">INGRESAR</button>
+    <header class="header">
+        <div class="logo">
+            <h1>LAVADERO</h1>
+        </div>
 
-    <div id="userMsg"></div>
+        <div class="user">
+            <h2 id="labelUserName">Usuario</h2>
+            <button id="btnExit">SALIR</button>
+        </div>
+    </header>
 
-    <div id="day"></div>
+    <main class="main">
+        <div class="mainDiv" id="mainContent">
 
-    <div id="dayMsg"></div>
+        </div>
+        <div class="auxDiv" id="auxContent">
 
-    <div id="slotsMsg"></div>
+        </div>
+    </main>
 
-    <div id="confirmMsg"></div>
+    <footer class="footer">
+        <button id="btnReset">VOLVER</button>
+    </footer>
 
-    <script src="js/script.js"></script>
+    <script src="./src/index.js"></script>
 </body>
 
 </html>

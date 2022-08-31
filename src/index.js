@@ -53,9 +53,10 @@ function loadSlots()
 
 class User
 {
-    constructor(name, addFee)
+    constructor(name, pass, addFee)
     {
         this.name = name;
+        this.pass = pass;
         this.addFee = addFee;
     }
 }
@@ -82,19 +83,16 @@ function loadUsers()
     }
 }
 
-function addUser(name, addFee)
+function addUser(name, pass, addFee)
 {
-    users.push(new User(name, addFee));
+    users.push(new User(name, pass, addFee));
 
-    console.log(users);
-    
     localStorage.setItem('users', JSON.stringify(users));
 }
 
 function setCurrentUserName()
 {
     localStorage.setItem('currentUserName', currentUserName);
-    loginOk = true;
 }
 
 
@@ -108,7 +106,6 @@ function setCurrentUserName()
 //==========================
 
 let mainContent = document.getElementById("mainContent");
-let auxContent = document.getElementById("auxContent");
 
 let labelUserName = document.getElementById("labelUserName");
 
@@ -117,60 +114,82 @@ let btnExit = document.getElementById("btnExit");
 
 btnExit.disabled = true;
 
+let currentUser;
 
 loadUsers();
 loadSlots();
+
+checkLogin();
 
 function checkLogin()
 {
     if(loginOk == true)
     {
+        currentUser = users.find((el) => el.name == currentUserName);
+
         btnExit.disabled = false;
         labelUserName.innerText = currentUserName;
 
-        mainContent.innerHTML = `<p>Ingrese el día: <input id="userDay" type="text"></p>
-                                <button id="btnDay">Consultar</button>`;
+        mainContent.innerHTML = `<p>Ingrese el día: 
+                                    <input type="date" id="userDay"
+                                    value="2022-09-01"
+                                    min="2022-09-01" 
+                                    max="2022-09-30">
+                                </p>
+                                <button id="btnDay" class="btn btn-primary">Consultar</button>`;
 
         document.getElementById("btnDay").addEventListener("click", checkDay);
-
-        auxContent.innerHTML = "";
     }
     else
     {
-        mainContent.innerHTML = `<div>
-                                    <h2>USUARIO</h2>
-                                    <input id="userName" type="text">
+        mainContent.innerHTML = `<div class="form-group mt-1 mb-1">
+                                    <label class="mb-1" for="userName">Usuario</label>
+                                    <input type="text" class="form-control" id="userName">
                                 </div>
-                                <div>
-                                    <button id="btnLogin">INGRESAR</button>
+                                <div class="form-group mt-1 mb-1">
+                                    <label class="mb-1" for="userPass">Contraseña</label>
+                                    <input type="password" class="form-control" id="userPass">
+                                </div>
+                                <div class="mx-auto text-center mt-1 mb-1">
+                                    <button id="btnLogin" name="button" class="btn btn-primary btn-lg fs-6 ps-4 pe-4">Ingresar</button>
+                                </div>
+                                <div class="mx-auto text-center mt-4 mb-4">
+                                    <button id="btnAdd" class="btn btn-outline-dark">Registrar</button>
                                 </div>`;
 
         document.getElementById("btnLogin").addEventListener("click", checkUser);
+        document.getElementById("btnAdd").addEventListener("click", registerUser);
 
-        labelUserName.innerText = "Usuario";
+        labelUserName.innerText = "";
         btnExit.disabled = true;
     }
 }
 
-checkLogin();
 
 btnExit.addEventListener("click", exitLogin);
 
 function exitLogin()
 {
     loginOk = false;
+
+    Toastify({
+        text: "Sesion cerrada",
+        duration: 3000,
+        gravity: "top", // `top` or `bottom`
+        position: "center", // `left`, `center` or `right`
+        stopOnFocus: true, // Prevents dismissing of toast on hover
+    }).showToast();
     
     checkLogin();
 }
 
 
-let currentUser;
-
 function checkUser()
 {
     currentUserName = document.getElementById("userName").value;
+    currentUserPass = document.getElementById("userPass").value;
 
-    let validUser = users.some((el) => el.name == currentUserName);
+    let validUser = users.some((el) => ((el.name == currentUserName) && (el.pass == currentUserPass)));
     
     if (true == validUser)
     {
@@ -181,40 +200,59 @@ function checkUser()
         btnExit.disabled = false;
         labelUserName.innerText = currentUserName;
 
-        mainContent.innerHTML = `<p>Ingrese el día: <input id="userDay" type="text"></p>
-                                 <button id="btnDay">Consultar</button>`;
+        mainContent.innerHTML = `<p>Ingrese el día: 
+                                    <input type="date" id="userDay"
+                                    value="2022-09-01"
+                                    min="2022-09-01" 
+                                    max="2022-09-30">
+                                </p>
+                                <button id="btnDay" class="btn btn-primary">Consultar</button>`;
 
         document.getElementById("btnDay").addEventListener("click", checkDay);
-
-        auxContent.innerHTML = "";
+        
+        Toastify({
+            text: "Bienvenido!",
+            duration: 3000,
+            gravity: "top",
+            position: "center", 
+            stopOnFocus: true,
+        }).showToast();
     }
     else
     {
-        auxContent.innerHTML = `<h2>${currentUserName} no está registrado.</h2>
-                                <button id="btnAdd">REGISTRAR</button>`
-        
-        document.getElementById("btnAdd").addEventListener("click", registerUser);
+        Swal.fire({
+            icon: 'error',
+            text: 'Usuario o contraseña incorrecta',
+          })
     }
 }
 
 
 function registerUser()
 {
-    addUser(currentUserName, false);
+    let newUserName = document.getElementById("userName").value;
+    let newUserPass = document.getElementById("userPass").value;
 
-    setCurrentUserName();
+    let alreadyUser = users.some((el) => (el.name == newUserName));
 
-    currentUser = users.find((el) => el.name == currentUserName);
+    if(alreadyUser == true)
+    {
+        Swal.fire({
+            icon: 'error',
+            title: newUserName,
+            text: 'El usuario ya está registrado',
+          });
+    }
+    else
+    {
+        addUser(newUserName, newUserPass, true);
 
-    btnExit.disabled = false;
-    labelUserName.innerText = currentUserName;
-
-    mainContent.innerHTML = `<p>Ingrese el día: <input id="userDay" type="text"></p>
-                             <button id="btnDay">Consultar</button>`;
-
-    document.getElementById("btnDay").addEventListener("click", checkDay);
-
-    auxContent.innerHTML = "";
+        Swal.fire({
+            icon: 'success',
+            title: currentUserName,
+            text: 'Usuario registrado',
+          })
+    }
 }
 
 
@@ -222,42 +260,32 @@ let currentUserDay;
 
 function checkDay()
 {
-    currentUserDay = document.getElementById("userDay").value;
+    currentUserDay = document.getElementById("userDay").value.split("-")[2];
 
-    if ((false == isNaN(currentUserDay)) && (currentUserDay > 0) && (currentUserDay <= daysPerMonth))
-    {
-        let currentDaySlots = slots.filter((el) => el.date.getDate() == currentUserDay);
+    let currentDaySlots = slots.filter((el) => el.date.getDate() == currentUserDay);
 
-        let msg = "Seleccione tu turno:" + "<br>";
+    let msg = "Seleccione tu turno:" + "<br>";
 
-        currentDaySlots.forEach(el => {
-            msg = msg + el.date.getHours() + "  -  ";
-            
-            if (true == el.available)
-            {
-                msg = msg + "Disponible" + "<br>";
-            }
-            else
-            {
-                msg = msg + "Ocupado" + "<br>";
-            }
-        });
-
+    currentDaySlots.forEach(el => {
+        msg = msg + el.date.getHours() + "  -  ";
         
+        if (true == el.available)
+        {
+            msg = msg + "Disponible" + "<br>";
+        }
+        else
+        {
+            msg = msg + "Ocupado" + "<br>";
+        }
+    });
 
-        mainContent.innerHTML = `<p>${msg}</p>`;
 
-        mainContent.innerHTML += `<input id="userSlot" type="text"></input>`
-        mainContent.innerHTML += `<button id="btnSend">Enviar</button>`;
+    mainContent.innerHTML = `<p>${msg}</p>`;
 
-        document.getElementById("btnSend").addEventListener("click", checkSlot);
-        
-        auxContent.innerHTML = "";
-    }
-    else
-    {
-        auxContent.innerHTML = "<h2>Ingrese un día válido</h2>";
-    }
+    mainContent.innerHTML += `<input id="userSlot" type="text"></input>`
+    mainContent.innerHTML += `<button id="btnSend" class="btn btn-primary">Enviar</button>`;
+
+    document.getElementById("btnSend").addEventListener("click", checkSlot);
 }
 
 
@@ -275,32 +303,42 @@ function checkSlot()
 
             if (true == currentSlot.available)
             {
-                let msg = "Resumen: " + "<br><br>" +
-                "Usuario: " + currentUser.name  + "<br>" +
-                "Fecha: " + currentSlot.date.toLocaleDateString();
+                let msg = "Usuario: " + currentUser.name  + "<br>" +
+                          "Fecha: " + currentSlot.date.toLocaleDateString();
 
                 if (true == currentUser.addFee)
                 {
                     msg = msg + "<br><br>" + "TIENES UN RECARGO POR INCUMPLIMIENTO"
                 }
 
-                mainContent.innerHTML = `<p>${msg}</p>`;
-
-                auxContent.innerHTML = "";  
+                Swal.fire({
+                    icon: 'success',
+                    title: msg,
+                    text: 'Horario reservado',
+                  });
             }
             else
             {
-                auxContent.innerHTML = "<h2>Ingrese un horario disponible</h2>";  
+                Swal.fire({
+                    icon: 'error',
+                    text: 'Horario inválido',
+                  });
             }
         }
         else
         {
-            auxContent.innerHTML = "<h2>Ingrese un horario válido</h2>";
+            Swal.fire({
+                icon: 'error',
+                text: 'Horario inválido',
+              });
         }
     }
     else
     {
-        auxContent.innerHTML = "<h2>Ingrese un horario válido</h2>";
+        Swal.fire({
+            icon: 'error',
+            text: 'Horario inválido',
+          });
     }
 }
 

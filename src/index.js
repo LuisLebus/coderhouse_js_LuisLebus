@@ -53,10 +53,11 @@ function loadSlots()
 
 class User
 {
-    constructor(name, pass, addFee)
+    constructor(name, pass, email, addFee)
     {
         this.name = name;
         this.pass = pass;
+        this.email = email;
         this.addFee = addFee;
     }
 }
@@ -83,9 +84,9 @@ function loadUsers()
     }
 }
 
-function addUser(name, pass, addFee)
+function addUser(name, pass, email, addFee)
 {
-    users.push(new User(name, pass, addFee));
+    users.push(new User(name, pass, email, addFee));
 
     localStorage.setItem('users', JSON.stringify(users));
 }
@@ -120,6 +121,14 @@ loadUsers();
 loadSlots();
 
 checkLogin();
+
+
+function validateEmail(email) 
+{
+    var re = /\S+@\S+\.\S+/;
+    return re.test(email);
+}
+
 
 function checkLogin()
 {
@@ -245,13 +254,31 @@ function registerUser()
     }
     else
     {
-        addUser(newUserName, newUserPass, true);
-
         Swal.fire({
-            icon: 'success',
-            title: currentUserName,
-            text: 'Usuario registrado',
-          })
+            title: 'Ingrese su email',
+            input: 'text',
+            inputAttributes: {
+              autocapitalize: 'off'
+            },
+            showConfirmButton: true,
+            confirmButtonText: 'Aceptar',
+            preConfirm: (email) => {
+                if(validateEmail(email) == false) {
+                    Swal.showValidationMessage("email inválido")   
+                }
+            },
+            })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    addUser(newUserName, newUserPass, result.value, true);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: currentUserName,
+                        text: 'Usuario registrado',
+                    })
+            }
+        })
     }
 }
 
@@ -312,10 +339,32 @@ function checkSlot()
                 }
 
                 Swal.fire({
-                    icon: 'success',
-                    title: msg,
-                    text: 'Horario reservado',
-                  });
+                    icon: 'question',
+                    title: '¿Confirmar turno?',
+                    html: msg,
+                    showConfirmButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Si',
+                    cancelButtonText: 'No',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        
+                        var templateParams = {
+                            email: currentUser.email,
+                            name: currentUser.name,
+                            date: currentSlot.date.toLocaleDateString()
+                        };
+                            
+                        emailjs.send('service_zl128z1', 'template_6418lyb', templateParams)
+                            .then(function(response) {
+                                console.log('SUCCESS!', response.status, response.text);
+                            }, function(error) {
+                                console.log('FAILED...', error);
+                            });
+                        
+
+                    } 
+                })
             }
             else
             {

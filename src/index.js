@@ -36,7 +36,7 @@ if (currentUser.isValid() == false) {
   document.getElementById("lblLogin").addEventListener("click", (e) => {
     e.preventDefault();
     currentUser.setEmail("");
-    window.location.href = "../index.html";
+    window.location.href = "./index.html";
   });
 
   document.getElementById("btnSelectDay").addEventListener("click", selectDay);

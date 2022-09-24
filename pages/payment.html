@@ -4,12 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="shortcut icon" href="./favicon.png" type="image/x-icon" />
-
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
-    />
+    <link rel="shortcut icon" href="../favicon.png" type="image/x-icon" />
 
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
@@ -23,15 +18,15 @@
       crossorigin="anonymous"
     ></script>
 
-    <title>Inicio</title>
+    <title>Pago</title>
   </head>
   <body>
     <header class="bg-success">
       <nav class="navbar navbar-expand-lg">
         <div class="container-fluid d-flex align-items-center">
-          <a class="navbar-brand" href="./index.html">
+          <a class="navbar-brand" href="../index.html">
             <img
-              src="./assets/images/logo.png"
+              src="../assets/images/logo.png"
               class="rounded-4"
               alt="Logo"
               height="100rem"
@@ -53,13 +48,15 @@
             id="navbarSupportedContent"
           >
             <div class="navbar-nav text-uppercase">
-              <a class="nav-link text-light fs-5" href="./index.html">Inicio</a>
-              <a class="nav-link text-light fs-5" href="./pages/services.html"
+              <a class="nav-link text-light fs-5" href="../index.html"
+                >Inicio</a
+              >
+              <a class="nav-link text-light fs-5" href="./services.html"
                 >Servicios</a
               >
               <a
                 class="nav-link fw-bold text-white fs-5"
-                href="./pages/login.html"
+                href="./login.html"
                 id="lblLogin"
                 >Ingresar</a
               >
@@ -70,10 +67,43 @@
     </header>
 
     <main
-      class="d-flex flex-column m-4 gap-2 justify-content-center align-items-center"
+      class="d-flex flex-column m-4 gap-4 justify-content-center align-items-center"
       style="min-height: 85vh"
-      id="divMain"
-    ></main>
+    >
+      <div>
+        <h2>Seleccione un método de pago</h2>
+      </div>
+
+      <div class="d-flex m-4 gap-5 justify-content-center align-items-center">
+        <div
+          class="card p-3 border border-3 border-secondary"
+          style="width: 18rem"
+        >
+          <img
+            src="../assets/images/credit_card_logo.png"
+            class="card-img-top"
+            alt="..."
+          />
+          <div class="card-body text-center p-3">
+            <a id="btnDebit" class="btn btn-primary">Débito</a>
+          </div>
+        </div>
+
+        <div
+          class="card p-3 border border-3 border-secondary"
+          style="width: 18rem"
+        >
+          <img
+            src="../assets/images/pago_facil_logo.jpg"
+            class="card-img-top"
+            alt="..."
+          />
+          <div class="card-body text-center p-3">
+            <a id="btnCash" class="btn btn-primary">Efectivo</a>
+          </div>
+        </div>
+      </div>
+    </main>
 
     <footer
       class="bg-dark d-flex justify-content-center align-items-center"
@@ -82,16 +112,7 @@
       <h5 class="text-light">Per aspera ad ASTRA</h5>
     </footer>
 
-    <script
-      type="text/javascript"
-      src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"
-    ></script>
-    <script type="text/javascript">
-      (function () {
-        emailjs.init("4w8CuMXDXgYSsj6Wd");
-      })();
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="./src/index.js" type="module"></script>
+    <script src="../src/payment.js" type="module"></script>
   </body>
 </html>

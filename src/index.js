@@ -1,396 +1,285 @@
-//==========================
-//      slot.js
-//==========================
+import { userList } from "./data/UserList.js";
+import { slotList } from "./data/SlotList.js";
+import { currentUser } from "./data/CurrentUser.js";
 
-//Constants
-const defaultYear = 2022;
-const defaultMonth = 4;
-const defaultHour = 9;
-const defaultMinute = 0;
-const defaultSecond = 0;
+let selectedSlot = null;
+let engineWashService = false;
+let waxService = false;
+let total = 0;
 
-const slotsPerDay = 8;
-const daysPerMonth = 30;
+const divMain = document.getElementById("divMain");
 
-class Slot
-{
-    constructor(date, available)
-    {
-        this.date = date;
-        this.available = available;
-    }    
+//Dependiendo si hay un usuario logueado se carga una u otra pantalla
+if (currentUser.isValid() == false) {
+  divMain.innerHTML = `
+    <h1>Bienvenido a ASTRA</h1>
+    <a class="btn btn-success" href="./pages/login.html" role="button">Ingresar</a>
+    <h3 class="fs-4 mt-5 animate__animated animate__pulse animate__infinite infinite">
+        ¡Registrate ahora y obtené $400 de regalo!</h3>`;
+} else {
+  divMain.innerHTML = `
+    <div class="d-flex flex-column m-1 gap-3 justify-content-center align-items-center">
+        <h1>${await userList.getName(currentUser.getEmail())}</h1>
+        <h2>$${await userList.getBalance(currentUser.getEmail())}</h2>
+        <a
+          class="btn btn-outline-dark"
+          href="./pages/payment.html"
+          role="button"
+          >Ingresar dinero</a
+        >
+    </div>
+    <div class="mt-5">
+        <a class="btn btn-success" id="btnSelectDay" role="button">Reservar turno</a>
+    </div>`;
+
+  document.getElementById("lblLogin").innerText = "Salir";
+  document.getElementById("lblLogin").addEventListener("click", (e) => {
+    e.preventDefault();
+    currentUser.setEmail("");
+    window.location.href = "../index.html";
+  });
+
+  document.getElementById("btnSelectDay").addEventListener("click", selectDay);
 }
 
-const slots = [];
+//Pantalla para seleccionar el dia
+function selectDay() {
+  divMain.innerHTML = `
+    <div>
+        <h2>Seleccione una fecha</h2>
+    </div>
 
-function loadSlots() 
-{
-    for (let i = 1; i <= daysPerMonth; i++)
-    {
-        for (let j = 0; j < slotsPerDay; j++)
-        {
-            let slotDate = new Date(defaultYear, defaultMonth, i, defaultHour + j, defaultMinute, defaultSecond);
-            let slotAvailable = true;
+    <input type="date" id="selectedDay" value="2022-09-24" min="2022-09-24" max="2022-09-24">
 
-            if(0 == Math.round( Math.random() ))
-            {
-                slotAvailable = false;
-            }
+    <div class="mt-5">
+        <a class="btn btn-outline-dark" href="./index.html" role="button">Volver</a>
+        <a class="btn btn-success" id="btnSelectSlot" role="button">Siguiente</a>
+    </div>`;
 
-            slots.push(new Slot(slotDate, slotAvailable));
-        }
+  document
+    .getElementById("btnSelectSlot")
+    .addEventListener("click", selectSlot);
+}
+
+//Pantalla para seleccionar el horario
+async function selectSlot() {
+  divMain.innerHTML = `
+    <div>
+        <h2>Seleccione un horario</h2>
+      </div>
+
+      <ul class="list-group w-25">
+        <li class="list-group-item">
+          <input
+            class="form-check-input me-1"
+            type="radio"
+            name="listGroupRadio"
+            value=""
+            id="radio16"
+          />
+          <label class="form-check-label ms-2" for="radio16">16:00 Hs</label>
+        </li>
+        <li class="list-group-item">
+          <input
+            class="form-check-input me-1"
+            type="radio"
+            name="listGroupRadio"
+            value=""
+            id="radio17"
+          />
+          <label class="form-check-label ms-2" for="radio17">17:00 Hs</label>
+        </li>
+        <li class="list-group-item">
+          <input
+            class="form-check-input me-1"
+            type="radio"
+            name="listGroupRadio"
+            value=""
+            id="radio18"
+          />
+          <label class="form-check-label ms-2" for="radio18">18:00 Hs</label>
+        </li>
+        <li class="list-group-item">
+          <input
+            class="form-check-input me-1"
+            type="radio"
+            name="listGroupRadio"
+            value=""
+            id="radio19"
+          />
+          <label class="form-check-label ms-2" for="radio19">19:00 Hs</label>
+        </li>
+        <li class="list-group-item">
+          <input
+            class="form-check-input me-1"
+            type="radio"
+            name="listGroupRadio"
+            value=""
+            id="radio20"
+          />
+          <label class="form-check-label ms-2" for="radio20">20:00 Hs</label>
+        </li>
+      </ul>
+
+      <div class="mt-5">
+        <a class="btn btn-outline-dark" href="./index.html" role="button">Volver</a>
+        <a class="btn btn-success" id="btnSelectService" role="button">Siguiente</a>
+    </div>`;
+
+  const radioGroup = document.getElementsByName("listGroupRadio");
+
+  //Se deshabilitan los radio button que corresponden a horaios ocupados
+  radioGroup.forEach(async (element, i) => {
+    element.disabled = (await slotList.isAvailable(
+      slotList.getFirstSlotHour() + i
+    ))
+      ? false
+      : true;
+  });
+
+  document
+    .getElementById("btnSelectService")
+    .addEventListener("click", selectService);
+}
+
+//Pantalla para seleccionar el servicio
+function selectService() {
+  const radioGroup = document.getElementsByName("listGroupRadio");
+
+  radioGroup.forEach((element, i) => {
+    if (element.checked) {
+      selectedSlot = i + slotList.getFirstSlotHour();
+      return;
     }
-}
+  });
 
-//==========================
-//  End slot.js
-//==========================
-
-
-//==========================
-//      user.js
-//==========================
-
-class User
-{
-    constructor(name, pass, email, addFee)
-    {
-        this.name = name;
-        this.pass = pass;
-        this.email = email;
-        this.addFee = addFee;
-    }
-}
-
-let users = [];
-let currentUserName = "";
-let loginOk = false;
-
-
-function loadUsers() 
-{
-    let usersAux = JSON.parse(localStorage.getItem('users'));
-
-    if(usersAux != null)
-    {
-        users = usersAux;
-    }
-
-    currentUserName = localStorage.getItem('currentUserName');
-    
-    if ((currentUserName != null) && (currentUserName != ""))
-    {
-        loginOk = true;
-    }
-}
-
-function addUser(name, pass, email, addFee)
-{
-    users.push(new User(name, pass, email, addFee));
-
-    localStorage.setItem('users', JSON.stringify(users));
-}
-
-function setCurrentUserName()
-{
-    localStorage.setItem('currentUserName', currentUserName);
-}
-
-
-//==========================
-//  End user.js
-//==========================
-
-
-//==========================
-//  index.js
-//==========================
-
-let mainContent = document.getElementById("mainContent");
-
-let labelUserName = document.getElementById("labelUserName");
-
-let btnReset = document.getElementById("btnReset");
-let btnExit = document.getElementById("btnExit");
-
-btnExit.disabled = true;
-
-let currentUser;
-
-loadUsers();
-loadSlots();
-
-checkLogin();
-
-
-function validateEmail(email) 
-{
-    var re = /\S+@\S+\.\S+/;
-    return re.test(email);
-}
-
-
-function checkLogin()
-{
-    if(loginOk == true)
-    {
-        currentUser = users.find((el) => el.name == currentUserName);
-
-        btnExit.disabled = false;
-        labelUserName.innerText = currentUserName;
-
-        mainContent.innerHTML = `<p>Ingrese el día: 
-                                    <input type="date" id="userDay"
-                                    value="2022-09-01"
-                                    min="2022-09-01" 
-                                    max="2022-09-30">
-                                </p>
-                                <button id="btnDay" class="btn btn-primary">Consultar</button>`;
-
-        document.getElementById("btnDay").addEventListener("click", checkDay);
-    }
-    else
-    {
-        mainContent.innerHTML = `<div class="form-group mt-1 mb-1">
-                                    <label class="mb-1" for="userName">Usuario</label>
-                                    <input type="text" class="form-control" id="userName">
-                                </div>
-                                <div class="form-group mt-1 mb-1">
-                                    <label class="mb-1" for="userPass">Contraseña</label>
-                                    <input type="password" class="form-control" id="userPass">
-                                </div>
-                                <div class="mx-auto text-center mt-1 mb-1">
-                                    <button id="btnLogin" name="button" class="btn btn-primary btn-lg fs-6 ps-4 pe-4">Ingresar</button>
-                                </div>
-                                <div class="mx-auto text-center mt-4 mb-4">
-                                    <button id="btnAdd" class="btn btn-outline-dark">Registrar</button>
-                                </div>`;
-
-        document.getElementById("btnLogin").addEventListener("click", checkUser);
-        document.getElementById("btnAdd").addEventListener("click", registerUser);
-
-        labelUserName.innerText = "";
-        btnExit.disabled = true;
-    }
-}
-
-
-btnExit.addEventListener("click", exitLogin);
-
-function exitLogin()
-{
-    loginOk = false;
-
-    Toastify({
-        text: "Sesion cerrada",
-        duration: 3000,
-        gravity: "top", // `top` or `bottom`
-        position: "center", // `left`, `center` or `right`
-        stopOnFocus: true, // Prevents dismissing of toast on hover
-    }).showToast();
-    
-    checkLogin();
-}
-
-
-function checkUser()
-{
-    currentUserName = document.getElementById("userName").value;
-    currentUserPass = document.getElementById("userPass").value;
-
-    let validUser = users.some((el) => ((el.name == currentUserName) && (el.pass == currentUserPass)));
-    
-    if (true == validUser)
-    {
-        currentUser = users.find((el) => el.name == currentUserName);
-
-        setCurrentUserName();
-        
-        btnExit.disabled = false;
-        labelUserName.innerText = currentUserName;
-
-        mainContent.innerHTML = `<p>Ingrese el día: 
-                                    <input type="date" id="userDay"
-                                    value="2022-09-01"
-                                    min="2022-09-01" 
-                                    max="2022-09-30">
-                                </p>
-                                <button id="btnDay" class="btn btn-primary">Consultar</button>`;
-
-        document.getElementById("btnDay").addEventListener("click", checkDay);
-        
-        Toastify({
-            text: "Bienvenido!",
-            duration: 3000,
-            gravity: "top",
-            position: "center", 
-            stopOnFocus: true,
-        }).showToast();
-    }
-    else
-    {
-        Swal.fire({
-            icon: 'error',
-            text: 'Usuario o contraseña incorrecta',
-          })
-    }
-}
-
-
-function registerUser()
-{
-    let newUserName = document.getElementById("userName").value;
-    let newUserPass = document.getElementById("userPass").value;
-
-    let alreadyUser = users.some((el) => (el.name == newUserName));
-
-    if(alreadyUser == true)
-    {
-        Swal.fire({
-            icon: 'error',
-            title: newUserName,
-            text: 'El usuario ya está registrado',
-          });
-    }
-    else
-    {
-        Swal.fire({
-            title: 'Ingrese su email',
-            input: 'text',
-            inputAttributes: {
-              autocapitalize: 'off'
-            },
-            showConfirmButton: true,
-            confirmButtonText: 'Aceptar',
-            preConfirm: (email) => {
-                if(validateEmail(email) == false) {
-                    Swal.showValidationMessage("email inválido")   
-                }
-            },
-            })
-            .then((result) => {
-                if (result.isConfirmed) {
-                    addUser(newUserName, newUserPass, result.value, true);
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: currentUserName,
-                        text: 'Usuario registrado',
-                    })
-            }
-        })
-    }
-}
-
-
-let currentUserDay;
-
-function checkDay()
-{
-    currentUserDay = document.getElementById("userDay").value.split("-")[2];
-
-    let currentDaySlots = slots.filter((el) => el.date.getDate() == currentUserDay);
-
-    let msg = "Seleccione tu turno:" + "<br>";
-
-    currentDaySlots.forEach(el => {
-        msg = msg + el.date.getHours() + "  -  ";
-        
-        if (true == el.available)
-        {
-            msg = msg + "Disponible" + "<br>";
-        }
-        else
-        {
-            msg = msg + "Ocupado" + "<br>";
-        }
+  if (selectedSlot == null) {
+    Swal.fire({
+      icon: "error",
+      text: "Seleccione un horario",
     });
+  } else {
+    divMain.innerHTML = `
+        <div>
+            <h2>Seleccione los servicios</h2>
+        </div>
 
+        <ul class="list-group w-25">
+            <li class="list-group-item">
+            <input
+                class="form-check-input me-1"
+                type="checkbox"
+                name="listGroupRadio"
+                value=""
+                id="cbStandarWash"
+                checked
+                disabled
+            />
+            <label class="form-check-label ms-2" for="cbStandarWash">Lavado estandar</label>
+            </li>
+            <li class="list-group-item">
+            <input
+                class="form-check-input me-1"
+                type="checkbox"
+                name="listGroupRadio"
+                value=""
+                id="cbEngineWash"
+            />
+            <label class="form-check-label ms-2" for="cbEngineWash">Lavado de motor</label>
+            </li>
+            <li class="list-group-item">
+            <input
+                class="form-check-input me-1"
+                type="checkbox"
+                name="listGroupRadio"
+                value=""
+                id="cbWax"
+            />
+            <label class="form-check-label ms-2" for="cbWax">Encerado</label>
+            </li>
+        </ul>
 
-    mainContent.innerHTML = `<p>${msg}</p>`;
+        <div class="mt-5">
+            <a class="btn btn-outline-dark" href="./index.html" role="button">Volver</a>
+            <a class="btn btn-success" id="btnConfirm" role="button">Siguiente</a>
+        </div>`;
 
-    mainContent.innerHTML += `<input id="userSlot" type="text"></input>`
-    mainContent.innerHTML += `<button id="btnSend" class="btn btn-primary">Enviar</button>`;
-
-    document.getElementById("btnSend").addEventListener("click", checkSlot);
+    document.getElementById("btnConfirm").addEventListener("click", confirm);
+  }
 }
 
+//Pantalla para confirmar reserva
+function confirm() {
+  engineWashService = document.getElementById("cbEngineWash").checked;
+  waxService = document.getElementById("cbWax").checked;
 
-function checkSlot()
-{
-    let currentUserSlot = document.getElementById("userSlot").value;
+  total = 50;
 
-    let currentDaySlots = slots.filter((el) => el.date.getDate() == currentUserDay);
+  if (engineWashService) {
+    total += 80;
+  }
 
-    if (false == isNaN(currentUserSlot))
-    {
-        if (true == currentDaySlots.some((el) => el.date.getHours() == currentUserSlot))
-        {
-            currentSlot = currentDaySlots.find((el) => el.date.getHours() == currentUserSlot);
+  if (waxService) {
+    total += 35;
+  }
 
-            if (true == currentSlot.available)
-            {
-                let msg = "Usuario: " + currentUser.name  + "<br>" +
-                          "Fecha: " + currentSlot.date.toLocaleDateString();
+  divMain.innerHTML = `
+    <div>
+        <h2>Confirmar reserva</h2>
+    </div>
 
-                if (true == currentUser.addFee)
-                {
-                    msg = msg + "<br><br>" + "TIENES UN RECARGO POR INCUMPLIMIENTO"
-                }
+    <p>24 de Septiembre ${selectedSlot}:00 Hs</p>
+    <h4>$${total}</h4>
 
-                Swal.fire({
-                    icon: 'question',
-                    title: '¿Confirmar turno?',
-                    html: msg,
-                    showConfirmButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Si',
-                    cancelButtonText: 'No',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        
-                        var templateParams = {
-                            email: currentUser.email,
-                            name: currentUser.name,
-                            date: currentSlot.date.toLocaleDateString()
-                        };
-                            
-                        emailjs.send('service_zl128z1', 'template_6418lyb', templateParams)
-                            .then(function(response) {
-                                console.log('SUCCESS!', response.status, response.text);
-                            }, function(error) {
-                                console.log('FAILED...', error);
-                            });
-                        
+    <div class="mt-5">
+        <a class="btn btn-outline-dark" href="./index.html" role="button">Volver</a>
+        <a class="btn btn-success" id="btnPay" role="button">Reservar</a>
+    </div>`;
 
-                    } 
-                })
-            }
-            else
-            {
-                Swal.fire({
-                    icon: 'error',
-                    text: 'Horario inválido',
-                  });
-            }
-        }
-        else
-        {
-            Swal.fire({
-                icon: 'error',
-                text: 'Horario inválido',
-              });
-        }
-    }
-    else
-    {
-        Swal.fire({
-            icon: 'error',
-            text: 'Horario inválido',
-          });
-    }
+  document.getElementById("btnPay").addEventListener("click", pay);
 }
 
-//==========================
-//  End index.js
-//==========================
+//Funcion para hacer el pago y actulizar el server de horarios y de usuarios
+async function pay() {
+  let currBalance = await userList.getBalance(currentUser.getEmail());
+
+  if (currBalance < total) {
+    Swal.fire({
+      icon: "error",
+      text: "Saldo insuficiente",
+    });
+  } else {
+    let newBalance = currBalance - total;
+
+    let succesUserUpdate = await userList.setBalance(
+      currentUser.getEmail(),
+      newBalance
+    );
+
+    let succesSlotUpdate = await slotList.update(selectedSlot);
+
+    if (succesUserUpdate && succesSlotUpdate) {
+      Swal.fire({
+        icon: "success",
+        text: "Turno reservado",
+      }).then(async (result) => {
+        var templateParams = {
+          email: currentUser.getEmail(),
+          name: await userList.getName(currentUser.getEmail()),
+          date: `24 de Septiembre ${selectedSlot}:00 Hs`,
+        };
+
+        emailjs.send("service_zl128z1", "template_22bqt0i", templateParams);
+
+        setTimeout(() => {
+          window.location.href = "../index.html";
+        }, "1000");
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        text: "Algo salió mal",
+      });
+    }
+  }
+}
